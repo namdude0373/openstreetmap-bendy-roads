@@ -237,7 +237,7 @@ def geojson_data(minlat, maxlat, minlon, maxlon, increment, output_prefix="outpu
 def save_to_postgres(minlat, maxlat, minlon, maxlon, increment, table_name="bendy_roads"):
 
     # Make an empty call to properties with a dud values to get the keys
-    property_names = properties([]).keys()
+    property_names = list(properties([]).keys())
     property_names.sort()
     
     conn2 = psycopg2.connect("dbname=gis")
