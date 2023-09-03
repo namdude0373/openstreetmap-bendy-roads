@@ -29,7 +29,7 @@ def import_data(filename):
             delete from planet_osm_line where
                 highway not in ('trunk', 'primary', 'secondary', 'tertiary', 'unclassified', 'road', 'residential', 'primary_link', 'secondary_link', 'trunk_link', 'motorway', 'motorway_link') or highway IS NULL;
             """)
-    print "Removed non-highways"
+    print("Removed non-highways")
     cur.execute("""
             alter table planet_osm_line add column geog geography;
             update planet_osm_line set geog = geography(st_transform(way, 4326));
@@ -37,16 +37,16 @@ def import_data(filename):
             alter table planet_osm_line add straightline float;
             alter table planet_osm_line add ratio float;
             """)
-    print "Added a geography column"
+    print("Added a geography column")
     cur.execute("""
             update planet_osm_line set length=st_length(geog), straightline=st_distance(geography(st_transform(st_startpoint(way), 4326)), geography(st_transform(st_endpoint(way), 4326)));
             update planet_osm_line set ratio=(case when straightline=0 then 0.0 else length::float/straightline::float end);
         """)
-    print "Added columns for ratio"
+    print("Added columns for ratio")
     cur.execute("""
             analyse planet_osm_line;
             """)
-    print "Analyzed & optimized"
+    print("Analyzed & optimized")
 
     conn.commit()
 
@@ -222,7 +222,7 @@ def geojson_data(minlat, maxlat, minlon, maxlon, increment, output_prefix="outpu
 
     finally:
 
-        print "\nSaving to %sgeojson.js" % output_prefix
+        print("\nSaving to %sgeojson.js" % output_prefix)
 
         with open(output_prefix+"geojson.js", 'w') as output_fp:
 
@@ -230,7 +230,7 @@ def geojson_data(minlat, maxlat, minlon, maxlon, increment, output_prefix="outpu
             json.dump(geojson, output_fp, indent=1)
             output_fp.write(';')
 
-        print "\nCalculating statistics"
+        print("\nCalculating statistics")
         generate_statistics(all_property_results, output_prefix+"stats.geojson.js")
 
 
@@ -264,12 +264,12 @@ def save_to_postgres(minlat, maxlat, minlon, maxlon, increment, table_name="bend
 
         conn2.commit()
 
-        print "\nCalculating statistics"
+        print("\nCalculating statistics")
         generate_statistics(all_property_results, table_name+".stats.json")
 
         # Create the indexes on the property columns. Doing this after all the data has been created, not sure if that's faster or not.
         # Would like to have it work
-        print "Creating indexes and optimizing..."
+        print("Creating indexes and optimizing...")
         for property_name in property_names:
             cursor.execute("CREATE INDEX {table}__{col} on {table} ({col});".format(table=table_name, col=property_name))
         cursor.execute("ANALYZE {0};".format(table_name))
@@ -303,8 +303,8 @@ if __name__ == '__main__':
         import_data(filename="../planet-130206-highways.osm.pbf")
 
     if args.type == 'postgres':
-        print "Saving to postgres table "+args.output
+        print("Saving to postgres table "+args.output)
         save_to_postgres(minlat=minlat, maxlat=maxlat, minlon=minlon, maxlon=maxlon, increment=increment, table_name="bendy_roads_"+args.output)
     elif args.type == 'geojson':
-        print "Saving to GeoJSON file {0}geojson.js".format(args.output)
+        print("Saving to GeoJSON file {0}geojson.js".format(args.output))
         geojson_data(minlat=minlat, maxlat=maxlat, minlon=minlon, maxlon=maxlon, increment=increment, output_prefix=args.output)
